@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Verify Certificate — ACV{% endblock %}
+{% block body %}
+<div class="verify-page">
+    <!-- Header -->
+    <header class="verify-header">
+        <div class="verify-brand">
+            <div class="brand-icon-sm"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <span class="brand-name-sm">ACV</span>
+                <span class="brand-sub-sm">Academic Certificate Validator</span>
+            </div>
+        </div>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-ghost">
+            <i class="fa-solid fa-right-to-bracket"></i> Login
+        </a>
+    </header>
+
+    <!-- Hero -->
+    <div class="verify-hero">
+        <div class="verify-hero-content">
+            <div class="hero-badge"><i class="fa-solid fa-shield-check"></i> Tamper-Proof Verification</div>
+            <h1>Verify Academic Certificate</h1>
+            <p>Enter a certificate ID or scan a QR code to instantly verify its authenticity using SHA-256 cryptographic hashing.</p>
+
+            <form method="POST" action="{{ url_for('verify.verify_index') }}" class="verify-form">
+                <div class="verify-input-group">
+                    <i class="fa-solid fa-certificate verify-input-icon"></i>
+                    <input type="text" name="certificate_id"
+                           value="{{ cert_id }}"
+                           placeholder="Enter Certificate ID (e.g. ACV-2026-IT-A3F9B2)"
+                           class="verify-input" autocomplete="off"
+                           style="text-transform:uppercase">
+                    <button type="submit" class="btn btn-verify">
+                        <i class="fa-solid fa-search"></i> Verify
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Result -->
+    {% if result %}
+    <div class="verify-result-section">
+        {% if result.status == 'VALID' %}
+        <div class="result-card result-valid">
+            <div class="result-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="result-header">
+                <h2>✅ CERTIFICATE VERIFIED</h2>
+                <p>This certificate is authentic and unmodified.</p>
+            </div>
+            <div class="result-details">
+                <div class="result-row">
+                    <span class="result-label">Certificate ID</span>
+                    <code>{{ result.cert.certificate_id }}</code>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Student Name</span>
+                    <strong>{{ result.cert.student_name }}</strong>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Course / Branch</span>
+                    <span>{{ result.cert.course }} — {{ result.cert.branch }}</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Certificate Type</span>
+                    <span>{{ result.cert.certificate_type }}</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Institution</span>
+                    <span>{{ result.cert.institution_name }}</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Issue Date</span>
+                    <span>{{ result.cert.issue_date }}</span>
+                </div>
+                {% if result.cert.grade %}
+                <div class="result-row">
+                    <span class="result-label">Grade</span>
+                    <span class="grade-badge">{{ result.cert.grade }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="hash-verify-display">
+                <div class="hash-verify-row">
+                    <span><i class="fa-solid fa-fingerprint"></i> SHA-256 Hash</span>
+                    <span class="hash-match"><i class="fa-solid fa-check-circle"></i> MATCHED</span>
+                </div>
+                <code class="hash-value-sm">{{ result.cert.certificate_hash }}</code>
+            </div>
+            <div class="result-status-row">
+                <span class="status-pill status-active"><i class="fa-solid fa-circle"></i> ACTIVE</span>
+                <span class="status-pill status-hash-ok"><i class="fa-solid fa-lock"></i> HASH VERIFIED</span>
+            </div>
+        </div>
+
+        {% elif result.status == 'REVOKED' %}
+        <div class="result-card result-revoked">
+            <div class="result-icon"><i class="fa-solid fa-ban"></i></div>
+            <div class="result-header">
+                <h2>⚠️ CERTIFICATE REVOKED</h2>
+                <p>This certificate was issued but has been revoked by the institution.</p>
+            </div>
+            <div class="result-details">
+                <div class="result-row"><span class="result-label">Certificate ID</span><code>{{ result.cert.certificate_id }}</code></div>
+                <div class="result-row"><span class="result-label">Student</span><strong>{{ result.cert.student_name }}</strong></div>
+                <div class="result-row"><span class="result-label">Institution</span><span>{{ result.cert.institution_name }}</span></div>
+                <div class="result-row"><span class="result-label">Revocation Reason</span><span class="text-danger">{{ result.cert.revocation_reason }}</span></div>
+                <div class="result-row"><span class="result-label">Revoked On</span><span>{{ result.cert.revoked_at }}</span></div>
+            </div>
+        </div>
+
+        {% elif result.status == 'TAMPERED' %}
+        <div class="result-card result-tampered">
+            <div class="result-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="result-header">
+                <h2>⚠️ CERTIFICATE DATA MISMATCH</h2>
+                <p>The certificate data does not match the original record. This certificate may have been tampered with.</p>
+            </div>
+            <div class="hash-verify-display">
+                <div class="hash-verify-row">
+                    <span>Stored Hash</span>
+                    <span class="hash-mismatch"><i class="fa-solid fa-xmark-circle"></i> MISMATCH</span>
+                </div>
+                <code class="hash-value-sm">{{ result.stored_hash }}</code>
+                <div class="hash-verify-row" style="margin-top:12px">
+                    <span>Computed Hash</span>
+                </div>
+                <code class="hash-value-sm tampered">{{ result.computed_hash }}</code>
+            </div>
+        </div>
+
+        {% elif result.status == 'NOT_FOUND' %}
+        <div class="result-card result-notfound">
+            <div class="result-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="result-header">
+                <h2>❌ CERTIFICATE NOT FOUND</h2>
+                <p>The certificate ID <code>{{ result.cert_id }}</code> does not exist in our records.</p>
+            </div>
+            <div class="not-found-reasons">
+                <p>Possible reasons:</p>
+                <ul>
+                    <li>Fake or forged certificate</li>
+                    <li>Incorrect certificate ID entered</li>
+                    <li>Certificate was never issued by this institution</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- How it works -->
+    <div class="verify-info-section">
+        <h2>How Verification Works</h2>
+        <div class="verify-steps">
+            <div class="verify-step">
+                <div class="step-num">1</div>
+                <div class="step-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <h4>Scan or Enter ID</h4>
+                <p>Scan the QR on the certificate or type the Certificate ID</p>
+            </div>
+            <div class="verify-step">
+                <div class="step-num">2</div>
+                <div class="step-icon"><i class="fa-solid fa-database"></i></div>
+                <h4>Database Lookup</h4>
+                <p>System queries the issuing institution's secure database</p>
+            </div>
+            <div class="verify-step">
+                <div class="step-num">3</div>
+                <div class="step-icon"><i class="fa-solid fa-fingerprint"></i></div>
+                <h4>Hash Comparison</h4>
+                <p>SHA-256 hash is computed and compared with stored fingerprint</p>
+            </div>
+            <div class="verify-step">
+                <div class="step-num">4</div>
+                <div class="step-icon"><i class="fa-solid fa-shield-check"></i></div>
+                <h4>Result</h4>
+                <p>Instant AUTHENTIC / INVALID / TAMPERED verdict</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="verify-footer">
+        <p>ACV — Academic Certificate Validator &copy; 2026 &middot; Powered by SHA-256 Cryptographic Hashing</p>
+    </footer>
+</div>
+{% endblock %}

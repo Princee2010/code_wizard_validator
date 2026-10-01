@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block title %}Certificates — ACV{% endblock %}
+{% block page_title %}Certificate Registry{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item"><i class="fa-solid fa-users"></i><span>Students</span></a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item active"><i class="fa-solid fa-certificate"></i><span>Certificates</span></a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item"><i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span></a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span></a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item"><i class="fa-solid fa-scroll"></i><span>Audit Logs</span></a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item"><i class="fa-solid fa-building-columns"></i><span>Institution</span></a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('admin.create_certificate') }}" class="btn btn-sm btn-primary">
+    <i class="fa-solid fa-plus"></i> Issue Certificate
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <form method="GET" class="search-bar">
+            <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search by ID, name…">
+            </div>
+            <select name="status">
+                <option value="">All Statuses</option>
+                <option value="ACTIVE" {% if status=='ACTIVE' %}selected{% endif %}>Active</option>
+                <option value="REVOKED" {% if status=='REVOKED' %}selected{% endif %}>Revoked</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Certificate ID</th><th>Student</th><th>Type</th><th>Course / Branch</th>
+                    <th>Issue Date</th><th>Grade</th><th>Status</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for cert in certificates %}
+            <tr>
+                <td><code class="cert-id">{{ cert.certificate_id }}</code></td>
+                <td>
+                    <div class="student-cell">
+                        <div class="student-avatar sm">{{ cert.student_name[0] }}</div>
+                        <div>
+                            <strong>{{ cert.student_name }}</strong><br>
+                            <small>{{ cert.student_id }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="cert-type-tag">{{ cert.certificate_type }}</span></td>
+                <td>{{ cert.course }}<br><small>{{ cert.branch }}</small></td>
+                <td>{{ cert.issue_date }}</td>
+                <td>{{ cert.grade or '—' }}</td>
+                <td><span class="badge badge-{{ cert.status.lower() }}">{{ cert.status }}</span></td>
+                <td>
+                    <div class="action-btns">
+                        <a href="{{ url_for('admin.view_certificate', cert_id=cert.certificate_id) }}"
+                           class="btn btn-xs btn-ghost" title="View"><i class="fa-solid fa-eye"></i></a>
+                        <a href="{{ url_for('admin.download_certificate', cert_id=cert.certificate_id) }}"
+                           class="btn btn-xs btn-ghost" title="Download"><i class="fa-solid fa-download"></i></a>
+                        <a href="{{ url_for('verify.verify_by_id', cert_id=cert.certificate_id) }}"
+                           class="btn btn-xs btn-ghost" title="Verify" target="_blank"><i class="fa-solid fa-shield-check"></i></a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="empty-row">
+                No certificates found. <a href="{{ url_for('admin.create_certificate') }}">Issue one now</a>
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">{{ certificates | length }} certificate(s)</div>
+</div>
+{% endblock %}

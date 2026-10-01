@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ACV — Academic Certificate Validator{% endblock %}</title>
+    <meta name="description" content="Academic Certificate Authenticity Validator">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="toast-container" id="toastContainer">
+    {% for cat, msg in messages %}
+    <div class="toast toast-{{ cat }}">
+        <i class="fa-solid {% if cat=='success' %}fa-circle-check{% elif cat=='error' %}fa-circle-xmark{% elif cat=='warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+        <span>{{ msg }}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Sidebar Layout -->
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="brand-text">
+                <span class="brand-name">ACV</span>
+                <span class="brand-sub">Certificate Validator</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            {% block sidebar_nav %}{% endblock %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+                <div class="user-info">
+                    <span class="user-name">{{ current_user.name }}</span>
+                    <span class="user-role">{{ current_user.role | title }}</span>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="topbar-title">
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+            <div class="topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+                <a href="{{ url_for('verify.verify_index') }}" class="btn btn-sm btn-ghost" target="_blank">
+                    <i class="fa-solid fa-qrcode"></i> Verify
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

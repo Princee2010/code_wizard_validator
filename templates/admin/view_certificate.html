@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+{% block title %}{{ cert.certificate_id }} — ACV{% endblock %}
+{% block page_title %}Certificate Detail{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item"><i class="fa-solid fa-users"></i><span>Students</span></a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item active"><i class="fa-solid fa-certificate"></i><span>Certificates</span></a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item"><i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span></a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span></a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item"><i class="fa-solid fa-scroll"></i><span>Audit Logs</span></a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item"><i class="fa-solid fa-building-columns"></i><span>Institution</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="cert-detail-layout">
+    <!-- Left: Certificate info -->
+    <div class="cert-detail-main">
+        <div class="card">
+            <div class="card-header">
+                <div class="cert-id-display">
+                    <code>{{ cert.certificate_id }}</code>
+                    <span class="badge badge-{{ cert.status.lower() }} badge-lg">{{ cert.status }}</span>
+                </div>
+                <div class="action-btns">
+                    <a href="{{ url_for('admin.download_certificate', cert_id=cert.certificate_id) }}"
+                       class="btn btn-sm btn-primary"><i class="fa-solid fa-download"></i> Download PDF</a>
+                    <a href="{{ url_for('verify.verify_by_id', cert_id=cert.certificate_id) }}"
+                       class="btn btn-sm btn-ghost" target="_blank"><i class="fa-solid fa-shield-check"></i> Verify</a>
+                </div>
+            </div>
+
+            <div class="cert-info-grid">
+                <div class="info-group">
+                    <label>Student Name</label>
+                    <strong>{{ cert.student_name }}</strong>
+                </div>
+                <div class="info-group">
+                    <label>Student ID</label>
+                    <code>{{ cert.student_id }}</code>
+                </div>
+                <div class="info-group">
+                    <label>Certificate Type</label>
+                    <span class="cert-type-tag">{{ cert.certificate_type }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Course</label>
+                    <strong>{{ cert.course }}</strong>
+                </div>
+                <div class="info-group">
+                    <label>Branch</label>
+                    <span>{{ cert.branch }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Grade</label>
+                    <span class="grade-badge">{{ cert.grade or '—' }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Percentage</label>
+                    <span>{{ cert.percentage or '—' }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Academic Year</label>
+                    <span>{{ cert.academic_year or '—' }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Issue Date</label>
+                    <strong>{{ cert.issue_date }}</strong>
+                </div>
+                <div class="info-group">
+                    <label>Issuer</label>
+                    <span>{{ cert.issuer_name }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Institution</label>
+                    <span>{{ cert.institution_name }}</span>
+                </div>
+                <div class="info-group">
+                    <label>Achievement</label>
+                    <span>{{ cert.achievement or '—' }}</span>
+                </div>
+            </div>
+
+            <!-- Hash Display -->
+            <div class="hash-display">
+                <div class="hash-header">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    <span>SHA-256 Certificate Hash</span>
+                    <span class="badge badge-active">AUTHENTIC</span>
+                </div>
+                <code class="hash-value">{{ cert.certificate_hash }}</code>
+                <p class="hash-note">Any modification to the certificate data will produce a different hash, immediately revealing tampering.</p>
+            </div>
+
+            <!-- Revocation -->
+            {% if cert.status == 'ACTIVE' %}
+            <div class="revoke-section">
+                <button class="btn btn-danger" onclick="document.getElementById('revokeModal').classList.add('open')">
+                    <i class="fa-solid fa-ban"></i> Revoke Certificate
+                </button>
+            </div>
+            {% elif cert.status == 'REVOKED' %}
+            <div class="revoked-notice">
+                <i class="fa-solid fa-ban"></i>
+                <div>
+                    <strong>Certificate Revoked</strong>
+                    <p>Reason: {{ cert.revocation_reason }}</p>
+                    <small>Revoked on {{ cert.revoked_at }}</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: QR + Verification logs -->
+    <div class="cert-detail-side">
+        {% if cert.qr_path %}
+        <div class="card qr-card">
+            <div class="card-header"><h3><i class="fa-solid fa-qrcode"></i> QR Code</h3></div>
+            <div class="qr-display">
+                <img src="{{ url_for('static', filename='qrcodes/' + cert.qr_path) }}" alt="Certificate QR Code">
+                <p class="qr-hint">Scan to verify this certificate</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header"><h3><i class="fa-solid fa-history"></i> Verification Log</h3></div>
+            <div class="table-wrapper">
+                <table class="data-table compact">
+                    <thead><tr><th>Time</th><th>Result</th><th>IP</th></tr></thead>
+                    <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.verification_time }}</td>
+                        <td><span class="badge badge-{{ log.result.lower() }}">{{ log.result }}</span></td>
+                        <td>{{ log.ip_address or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="empty-row">No verifications yet</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revoke Modal -->
+<div class="modal-overlay" id="revokeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-ban"></i> Revoke Certificate</h3>
+            <button onclick="document.getElementById('revokeModal').classList.remove('open')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.revoke_certificate', cert_id=cert.certificate_id) }}">
+            <div class="modal-body">
+                <p>You are about to revoke <strong>{{ cert.certificate_id }}</strong>. This action will mark it as invalid for all future verifications.</p>
+                <div class="form-group">
+                    <label>Reason for Revocation *</label>
+                    <textarea name="reason" rows="3" required placeholder="e.g., Incorrect student information, Academic fraud detected…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('revokeModal').classList.remove('open')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Confirm Revocation</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

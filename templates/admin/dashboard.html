@@ -1,0 +1,220 @@
+{% extends "layout.html" %}
+{% block title %}Admin Dashboard — ACV{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item active">
+    <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+</a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item">
+    <i class="fa-solid fa-users"></i><span>Students</span>
+</a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item">
+    <i class="fa-solid fa-certificate"></i><span>Certificates</span>
+</a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item">
+    <i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span>
+</a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item">
+    <i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span>
+</a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item">
+    <i class="fa-solid fa-scroll"></i><span>Audit Logs</span>
+</a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item">
+    <i class="fa-solid fa-building-columns"></i><span>Institution</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('admin.create_certificate') }}" class="btn btn-sm btn-primary">
+    <i class="fa-solid fa-plus"></i> Issue Certificate
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card" style="--accent:#6366f1">
+        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.students }}</span>
+            <span class="stat-label">Total Students</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+    <div class="stat-card" style="--accent:#10b981">
+        <div class="stat-icon"><i class="fa-solid fa-certificate"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.issued }}</span>
+            <span class="stat-label">Certificates Issued</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+    <div class="stat-card" style="--accent:#3b82f6">
+        <div class="stat-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.verified }}</span>
+            <span class="stat-label">Verifications</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+    <div class="stat-card" style="--accent:#ef4444">
+        <div class="stat-icon"><i class="fa-solid fa-ban"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.revoked }}</span>
+            <span class="stat-label">Revoked</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+    <div class="stat-card" style="--accent:#f59e0b">
+        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.invalid }}</span>
+            <span class="stat-label">Invalid Attempts</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+    <div class="stat-card" style="--accent:#8b5cf6">
+        <div class="stat-icon"><i class="fa-solid fa-calendar"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.this_month }}</span>
+            <span class="stat-label">This Month</span>
+        </div>
+        <div class="stat-glow"></div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="charts-row">
+    <div class="card chart-card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-bar"></i> Certificates Issued — Monthly</h3>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+    <div class="card chart-card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-pie"></i> Verification Results</h3>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="verifyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Row -->
+<div class="activity-row">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-certificate"></i> Recent Certificates</h3>
+            <a href="{{ url_for('admin.certificates') }}" class="btn btn-sm btn-ghost">View All</a>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Certificate ID</th><th>Student</th><th>Course</th><th>Date</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for cert in recent_certs %}
+                <tr>
+                    <td><code class="cert-id">{{ cert.certificate_id }}</code></td>
+                    <td>{{ cert.student_name }}</td>
+                    <td>{{ cert.branch }}</td>
+                    <td>{{ cert.issue_date }}</td>
+                    <td><span class="badge badge-{{ cert.status.lower() }}">{{ cert.status }}</span></td>
+                    <td><a href="{{ url_for('admin.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-xs btn-ghost"><i class="fa-solid fa-eye"></i></a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty-row">No certificates yet</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Verifications</h3>
+            <a href="{{ url_for('admin.verification_history') }}" class="btn btn-sm btn-ghost">View All</a>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Certificate ID</th><th>Time</th><th>Result</th><th>Device</th></tr>
+                </thead>
+                <tbody>
+                {% for log in recent_verifications %}
+                <tr>
+                    <td><code class="cert-id">{{ log.certificate_id }}</code></td>
+                    <td>{{ log.verification_time }}</td>
+                    <td><span class="badge badge-{{ log.result.lower() }}">{{ log.result }}</span></td>
+                    <td class="ua-cell">{{ log.user_agent[:30] if log.user_agent else '—' }}…</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-row">No verifications yet</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const chartDefaults = {
+    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter' } } } },
+    scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+        y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true }
+    }
+};
+
+// Monthly issuance bar chart
+const monthlyData = {{ monthly | tojson }};
+new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+        labels: monthlyData.map(d => d.month).reverse(),
+        datasets: [{
+            label: 'Certificates Issued',
+            data: monthlyData.map(d => d.cnt).reverse(),
+            backgroundColor: 'rgba(99,102,241,0.7)',
+            borderColor: '#6366f1',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+});
+
+// Verification doughnut
+const vt = {{ verify_trend | tojson }};
+const totalValid = vt.reduce((s,d) => s + d.valid, 0);
+const totalInvalid = vt.reduce((s,d) => s + d.invalid, 0);
+new Chart(document.getElementById('verifyChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Valid', 'Invalid / Tampered'],
+        datasets: [{
+            data: [totalValid || 0, totalInvalid || 0],
+            backgroundColor: ['rgba(16,185,129,0.8)', 'rgba(239,68,68,0.8)'],
+            borderColor: ['#10b981', '#ef4444'],
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16 } } },
+        cutout: '70%'
+    }
+});
+</script>
+{% endblock %}

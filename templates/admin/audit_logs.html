@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Audit Logs — ACV{% endblock %}
+{% block page_title %}Audit Logs{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item"><i class="fa-solid fa-users"></i><span>Students</span></a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item"><i class="fa-solid fa-certificate"></i><span>Certificates</span></a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item"><i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span></a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span></a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item active"><i class="fa-solid fa-scroll"></i><span>Audit Logs</span></a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item"><i class="fa-solid fa-building-columns"></i><span>Institution</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3><i class="fa-solid fa-scroll"></i> System Audit Trail</h3></div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr><th>Time</th><th>User</th><th>Action</th><th>Certificate</th><th>Student</th><th>IP</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.user_name or '—' }}</td>
+                <td><span class="audit-action">{{ log.action }}</span></td>
+                <td>{% if log.certificate_id %}<code class="cert-id">{{ log.certificate_id }}</code>{% else %}—{% endif %}</td>
+                <td>{{ log.student_id or '—' }}</td>
+                <td>{{ log.ip_address or '—' }}</td>
+                <td>{{ log.details or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="empty-row">No audit logs yet</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

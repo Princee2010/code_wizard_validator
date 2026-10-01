@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block title %}Student Dashboard — ACV{% endblock %}
+{% block page_title %}My Certificates{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('student.dashboard') }}" class="nav-item active">
+    <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+</a>
+<div class="nav-section">MY CERTIFICATES</div>
+{% for cert in certificates %}
+<a href="{{ url_for('student.view_certificate', cert_id=cert.certificate_id) }}" class="nav-item">
+    <i class="fa-solid fa-certificate"></i>
+    <span>{{ cert.certificate_id }}</span>
+</a>
+{% endfor %}
+<div class="nav-section">VERIFY</div>
+<a href="{{ url_for('verify.verify_index') }}" class="nav-item" target="_blank">
+    <i class="fa-solid fa-qrcode"></i><span>Public Verify</span>
+</a>
+{% endblock %}
+
+{% block content %}
+{% if student %}
+<div class="student-profile-card">
+    <div class="profile-avatar">{{ student.name[0].upper() }}</div>
+    <div class="profile-info">
+        <h2>{{ student.name }}</h2>
+        <div class="profile-meta">
+            <span><i class="fa-solid fa-id-card"></i> {{ student.student_id }}</span>
+            <span><i class="fa-solid fa-graduation-cap"></i> {{ student.course }} — {{ student.branch }}</span>
+            <span><i class="fa-solid fa-calendar"></i> Batch {{ student.batch }}</span>
+            <span><i class="fa-solid fa-building"></i> {{ student.college }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="cert-cards-grid">
+    {% for cert in certificates %}
+    <div class="cert-card">
+        <div class="cert-card-header">
+            <span class="cert-type-icon"><i class="fa-solid fa-award"></i></span>
+            <span class="badge badge-{{ cert.status.lower() }}">{{ cert.status }}</span>
+        </div>
+        <div class="cert-card-body">
+            <h3>{{ cert.certificate_type }}</h3>
+            <p>{{ cert.course }} — {{ cert.branch }}</p>
+            <div class="cert-card-meta">
+                <span><i class="fa-solid fa-calendar"></i> {{ cert.issue_date }}</span>
+                {% if cert.grade %}<span><i class="fa-solid fa-star"></i> {{ cert.grade }}</span>{% endif %}
+            </div>
+            <code class="cert-id-small">{{ cert.certificate_id }}</code>
+        </div>
+        <div class="cert-card-actions">
+            <a href="{{ url_for('student.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-sm btn-ghost">
+                <i class="fa-solid fa-eye"></i> View
+            </a>
+            <a href="{{ url_for('student.download_certificate', cert_id=cert.certificate_id) }}" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-download"></i> Download
+            </a>
+            <a href="{{ url_for('verify.verify_by_id', cert_id=cert.certificate_id) }}" class="btn btn-sm btn-ghost" target="_blank">
+                <i class="fa-solid fa-shield-check"></i> Verify
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-certificate"></i>
+        <h3>No Certificates Yet</h3>
+        <p>Your certificates will appear here once issued by your institution.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

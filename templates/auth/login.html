@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Login — ACV Academic Certificate Validator{% endblock %}
+{% block body %}
+<div class="auth-container">
+    <div class="auth-left">
+        <div class="auth-brand">
+            <div class="auth-brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h1 class="auth-brand-name">ACV</h1>
+            <p class="auth-brand-tag">Academic Certificate Validator</p>
+        </div>
+
+        <div class="auth-features">
+            <div class="auth-feature">
+                <div class="feature-icon"><i class="fa-solid fa-fingerprint"></i></div>
+                <div>
+                    <strong>SHA-256 Fingerprinting</strong>
+                    <p>Tamper-proof cryptographic hash for every certificate</p>
+                </div>
+            </div>
+            <div class="auth-feature">
+                <div class="feature-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <div>
+                    <strong>QR Verification</strong>
+                    <p>Instant verification by scanning the QR code</p>
+                </div>
+            </div>
+            <div class="auth-feature">
+                <div class="feature-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                <div>
+                    <strong>Digital Certificates</strong>
+                    <p>Professional PDF certificates with digital signatures</p>
+                </div>
+            </div>
+            <div class="auth-feature">
+                <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <strong>Real-time Dashboard</strong>
+                    <p>Monitor issuance, verification and fraud attempts</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-demo-creds">
+            <p class="demo-label">Demo Credentials</p>
+            <div class="demo-cards">
+                <div class="demo-card" onclick="fillCreds('admin@acv.edu','admin123')">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Admin</span>
+                    <code>admin@acv.edu</code>
+                </div>
+                <div class="demo-card" onclick="fillCreds('verify@company.com','verify123')">
+                    <i class="fa-solid fa-building"></i>
+                    <span>Verifier</span>
+                    <code>verify@company.com</code>
+                </div>
+                <div class="demo-card" onclick="fillCreds('princee@student.edu','student123')">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Student</span>
+                    <code>princee@student.edu</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form">
+                <div class="form-group">
+                    <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@institution.edu"
+                           required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="password" name="password"
+                               placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" class="toggle-pwd" onclick="togglePassword()">
+                            <i class="fa-solid fa-eye" id="pwdIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember"> Remember me
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-divider"><span>or</span></div>
+
+            <a href="{{ url_for('verify.verify_index') }}" class="btn btn-ghost btn-full">
+                <i class="fa-solid fa-qrcode"></i> Verify a Certificate (No Login)
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillCreds(email, pwd) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pwd;
+}
+function togglePassword() {
+    const p = document.getElementById('password');
+    const i = document.getElementById('pwdIcon');
+    if (p.type === 'password') { p.type = 'text'; i.className = 'fa-solid fa-eye-slash'; }
+    else { p.type = 'password'; i.className = 'fa-solid fa-eye'; }
+}
+</script>
+{% endblock %}

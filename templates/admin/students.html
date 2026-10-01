@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block title %}Students — ACV{% endblock %}
+{% block page_title %}Student Management{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+</a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item active">
+    <i class="fa-solid fa-users"></i><span>Students</span>
+</a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item">
+    <i class="fa-solid fa-certificate"></i><span>Certificates</span>
+</a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item">
+    <i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span>
+</a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item">
+    <i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span>
+</a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item">
+    <i class="fa-solid fa-scroll"></i><span>Audit Logs</span>
+</a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item">
+    <i class="fa-solid fa-building-columns"></i><span>Institution</span>
+</a>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('admin.add_student') }}" class="btn btn-sm btn-primary">
+    <i class="fa-solid fa-plus"></i> Add Student
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <form method="GET" class="search-bar">
+            <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search by name, ID or email…">
+            </div>
+            <select name="course">
+                <option value="">All Courses</option>
+                {% for c in courses %}
+                <option value="{{ c.course }}" {% if course==c.course %}selected{% endif %}>{{ c.course }}</option>
+                {% endfor %}
+            </select>
+            <select name="batch">
+                <option value="">All Batches</option>
+                {% for b in batches %}
+                <option value="{{ b.batch }}" {% if batch==b.batch %}selected{% endif %}>{{ b.batch }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student ID</th><th>Name</th><th>Course</th><th>Branch</th>
+                    <th>Batch</th><th>Email</th><th>College</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for s in students %}
+            <tr>
+                <td><code class="cert-id">{{ s.student_id }}</code></td>
+                <td>
+                    <div class="student-cell">
+                        <div class="student-avatar">{{ s.name[0].upper() }}</div>
+                        {{ s.name }}
+                    </div>
+                </td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.branch }}</td>
+                <td><span class="badge badge-active">{{ s.batch }}</span></td>
+                <td>{{ s.email }}</td>
+                <td>{{ s.college }}</td>
+                <td>
+                    <div class="action-btns">
+                        <a href="{{ url_for('admin.edit_student', student_id=s.student_id) }}" class="btn btn-xs btn-ghost" title="Edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.student_id) }}"
+                              onsubmit="return confirm('Delete this student?')" style="display:inline">
+                            <button type="submit" class="btn btn-xs btn-danger" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="empty-row">
+                <i class="fa-solid fa-users-slash"></i> No students found.
+                <a href="{{ url_for('admin.add_student') }}">Add one now</a>
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        Showing {{ students | length }} student(s)
+    </div>
+</div>
+{% endblock %}

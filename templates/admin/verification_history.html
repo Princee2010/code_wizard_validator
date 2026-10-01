@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block title %}Verification History — ACV{% endblock %}
+{% block page_title %}Verification History{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{{ url_for('admin.dashboard') }}" class="nav-item"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+<div class="nav-section">MANAGEMENT</div>
+<a href="{{ url_for('admin.students') }}" class="nav-item"><i class="fa-solid fa-users"></i><span>Students</span></a>
+<a href="{{ url_for('admin.certificates') }}" class="nav-item"><i class="fa-solid fa-certificate"></i><span>Certificates</span></a>
+<a href="{{ url_for('admin.create_certificate') }}" class="nav-item"><i class="fa-solid fa-plus-circle"></i><span>Issue Certificate</span></a>
+<div class="nav-section">MONITORING</div>
+<a href="{{ url_for('admin.verification_history') }}" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i><span>Verification History</span></a>
+<a href="{{ url_for('admin.audit_logs') }}" class="nav-item"><i class="fa-solid fa-scroll"></i><span>Audit Logs</span></a>
+<div class="nav-section">SETTINGS</div>
+<a href="{{ url_for('admin.institution') }}" class="nav-item"><i class="fa-solid fa-building-columns"></i><span>Institution</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3><i class="fa-solid fa-magnifying-glass"></i> All Verification Attempts</h3></div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr><th>Certificate ID</th><th>Time</th><th>Result</th><th>IP Address</th><th>Browser / Device</th><th>Verifier</th></tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+                <td><code class="cert-id">{{ log.certificate_id }}</code></td>
+                <td>{{ log.verification_time }}</td>
+                <td><span class="badge badge-{{ log.result.lower() }}">{{ log.result }}</span></td>
+                <td>{{ log.ip_address or '—' }}</td>
+                <td class="ua-cell">{{ (log.user_agent or '—')[:50] }}</td>
+                <td>{{ log.verifier_name or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="empty-row">No verification logs yet</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
